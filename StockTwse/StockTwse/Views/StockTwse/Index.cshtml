@@ -9,17 +9,73 @@
 
 <div class="container" id="app">
 	<div class="row">
-		<div class="col-lg-12">
-			<div class="input-group mb-3 p-5">
+		<div class="col-lg-12 pt-5">
+			<div class="input-group">
 				<span class="input-group-text" id="basic-addon1">請輸入股票代號</span>
-				<input type="text" class="form-control" placeholder="2330" aria-label="Username"
-					   aria-describedby="basic-addon1" v-model="userInput">
+				<input type="text" class="form-control" placeholder="2330 or 6547" aria-label="Username" aria-describedby="basic-addon1" v-model="userInput">
 			</div>
-			<div class="" v-if="spinner" v-cloak>
-			</div>
-			@*bs spinner 動畫*@
-			<partial name="_Spinner"></partial>
 		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-12 pt-3">
+			<button type="button" class="btn btn-primary" v-on:click="getStockApi">確定資料</button>
+			<button type="button" class="btn btn-danger" v-on:click="cleanStockInfo">清除資料</button>
+		</div>
+	</div>
+	<div class="row pt-3">
+		<table class="table table-striped" v-if="spinner">
+			<thead>
+				<tr>
+					<th scope="col">c	股票代號</th>
+					@* <th scope="col">上市或上櫃公司</th> *@
+					<th scope="col">n	公司簡稱</th>
+					@* <th scope="col">nf	公司全名</th> *@
+					<th scope="col">d	最近交易日期（YYYYMMDD）</th>
+					<th scope="col">t	最近成交時刻（HH:MI:SS）</th>
+					@* <th scope="col">tlong	資料更新時間（單位：毫秒）</th> *@
+					<th scope="col">z	當前盤中成交價</th>
+					<th scope="col">tv	當前盤中盤成交量</th>
+					<th scope="col">v	累積成交量</th>
+					<th scope="col">o	開盤價格</th>
+					<th scope="col">h	最高價格</th>
+					<th scope="col">l	最低價格</th>
+					<th scope="col">y	昨日收盤價格</th>
+					@* <th scope="col">b	揭示買價(從高到低，以_分隔資料)</th> *@
+					@* <th scope="col">g	揭示買量(配合b，以_分隔資料</th> *@
+					@* <th scope="col">a	揭示賣價(從低到高，以_分隔資料)</th> *@
+					@* <th scope="col">f	揭示賣量(配合a，以_分隔資料)</th> *@
+					@* <th scope="col">u	漲停價</th> *@
+					@* <th scope="col">w	跌停價</th> *@
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-if="stockInfo.msgArray">
+					<td>{{ stockInfo.msgArray[0].c }}</td>
+					@* <td>{{ stockInfo.msgArray[0].c }}</td> *@
+					<td>{{ stockInfo.msgArray[0].n }}</td>
+					@* <td>{{ stockInfo.msgArray[0].nf }}</td> *@
+					<td>{{ stockInfo.msgArray[0].d }}</td>
+					<td>{{ stockInfo.msgArray[0].t }}</td>
+					@* <td>{{ stockInfo.msgArray[0].tlong }}</td> *@
+					<td>{{ stockInfo.msgArray[0].z }}</td>
+					<td>{{ stockInfo.msgArray[0].tv }}</td>
+					<td>{{ stockInfo.msgArray[0].v }}</td>
+					<td>{{ stockInfo.msgArray[0].o }}</td>
+					<td>{{ stockInfo.msgArray[0].h }}</td>
+					<td>{{ stockInfo.msgArray[0].l }}</td>
+					<td>{{ stockInfo.msgArray[0].y }}</td>
+					@* <td>{{ stockInfo.msgArray[0].b }}</td> *@
+					@* <td>{{ stockInfo.msgArray[0].g }}</td> *@
+					@* <td>{{ stockInfo.msgArray[0].a }}</td> *@
+					@* <td>{{ stockInfo.msgArray[0].f }}</td> *@
+					@* <td>{{ stockInfo.msgArray[0].u }}</td> *@
+					@* <td>{{ stockInfo.msgArray[0].w }}</td> *@
+				</tr>
+			</tbody>
+		</table>
+
+		@*bs spinner 動畫*@
+		<partial name="_Spinner"></partial>
 	</div>
 </div>
 
@@ -28,13 +84,12 @@
 		let app = new Vue({
 			el: "#app",
 			data: {
-				spinner: false,
+				spinner: true,
 				userInput: "",
-				returnData: [],
+				stockInfo: [],
 			},
 			mounted: function () {
 				let _this = this;
-				_this.getStockApi();
 			},
 			computed: {
 
@@ -42,9 +97,15 @@
 			methods: {
 				getStockApi: async function () {
 					let _this = this;
-					axios.get("api/StockTwseApi/GetStockInfo").then(response => {
-						_this.returnData = response.data;
+					_this.spinner = false;
+					await axios.get(`api/StockTwseApi/GetStockInfo/${this.userInput}`).then(response => {
+						_this.stockInfo = response.data;
+						_this.spinner = true;
 					});
+				},
+				cleanStockInfo: function () {
+					let _this = this;
+					_this.stockInfo = [];
 				},
 			},
 		});

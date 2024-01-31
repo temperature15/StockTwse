@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StockTwse.ViewModels;
 using System;
 using System.Net.Http;
+using System.Text.Json;
 
 namespace StockTwse.Api {
+	[Route("api/[controller]/[action]")]
 	[ApiController]
 	public class StockTwseApiController : ControllerBase {
 		private readonly IHttpClientFactory _httpClientFactory;
@@ -16,35 +19,56 @@ namespace StockTwse.Api {
 			_configuration = configuration;
 		}
 
-		[HttpGet]
-		[Route("api/[controller]/[action]")]
-		public async Task<ActionResult> GetStockInfo() {
+		[HttpGet("{userInput}")]
+		public async Task<ActionResult> GetStockInfo(string userInput) {
 			// tse開頭為上市股票。
 			// otc開頭為上櫃股票。
 			// 如果是興櫃股票則無法取得。
-			string c = "2330";
-			string tse = "tse";
-			string otc = "otc";
-			string tseUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_{c}.tw";
-			string otcUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=otc_{c}.tw";
+			// 上市公司股票代號查詢
+			string tseUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_{userInput}.tw";
+			// 上櫃公司股票代號查詢
+			string otcUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=otc_{userInput}.tw";
 
 			// 請求 data
 			HttpClient client = _httpClientFactory.CreateClient();
 
 			// 發起請求
-			HttpResponseMessage response = await client.GetAsync(otcUrl);
+			// 先用 tseUrl 請求, 如果返回的 msgArray 是空的, 就用 otcUrl 再請求一次
+			HttpResponseMessage responseTse = await client.GetAsync(tseUrl);
 
 			// 如果回傳的 http code 不是200, 拋出例外
 			//response.EnsureSuccessStatusCode();
 
-			if (!response.IsSuccessStatusCode) {
-				return BadRequest(await response.Content.ReadAsStringAsync());
+			if (!responseTse.IsSuccessStatusCode) {
+				return BadRequest(await responseTse.Content.ReadAsStringAsync());
 			}
 
 			// 轉成字串
-			string responseBody = await response.Content.ReadAsStringAsync();
+			string responseBodyTse = await responseTse.Content.ReadAsStringAsync();
 
-			return Ok(responseBody);
+			// 先用 tseUrl 請求, 判斷返回的 msgArray 是不是空的
+			JsonDocument jd = JsonDocument.Parse(responseBodyTse);
+
+			JsonElement root = jd.RootElement;
+
+			JsonElement msgArray = root.GetProperty("msgArray");
+
+			if (msgArray.ValueKind == JsonValueKind.Array && msgArray.EnumerateArray().Any()) {
+				return Ok(responseBodyTse);
+			}
+
+			// 發起請求
+			// 先用 tseUrl 請求, 如果返回的 msgArray 是空的, 就用 otcUrl 再請求一次
+			HttpResponseMessage responseOtc = await client.GetAsync(otcUrl);
+
+			if (!responseOtc.IsSuccessStatusCode) {
+				return BadRequest(await responseOtc.Content.ReadAsStringAsync());
+			}
+
+			// 轉成字串
+			string responseBodyOtc = await responseOtc.Content.ReadAsStringAsync();
+
+			return Ok(responseBodyOtc);
 
 			// 回傳的JSON欄位說明：
 
