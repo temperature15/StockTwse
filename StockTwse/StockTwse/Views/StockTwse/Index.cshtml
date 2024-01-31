@@ -4,6 +4,11 @@
 
 @section Styles {
 	<style>
+		/* []表示属性 */
+		/* 带有v-cloak属性的元素先隐藏, 等資料下載完成才顯示, 不然載入頁面會看到一堆{{xxx}} */
+		[v-cloak] {
+			display: none;
+		}
 	</style>
 }
 
@@ -23,15 +28,15 @@
 		</div>
 	</div>
 	<div class="row pt-3">
-		<table class="table table-striped" v-if="spinner">
-			<thead>
+		<table class="table table-striped table-bordered" v-if="spinner">
+			<thead class="table-light">
 				<tr>
 					<th scope="col">c	股票代號</th>
 					@* <th scope="col">上市或上櫃公司</th> *@
 					<th scope="col">n	公司簡稱</th>
 					@* <th scope="col">nf	公司全名</th> *@
-					<th scope="col">d	最近交易日期（YYYYMMDD）</th>
-					<th scope="col">t	最近成交時刻（HH:MI:SS）</th>
+					<th scope="col">d + t	最近交易日期（YYYYMMDD）</th>
+					@* <th scope="col">t	最近成交時刻（HH:MI:SS）</th> *@
 					@* <th scope="col">tlong	資料更新時間（單位：毫秒）</th> *@
 					<th scope="col">z	當前盤中成交價</th>
 					<th scope="col">tv	當前盤中盤成交量</th>
@@ -48,14 +53,14 @@
 					@* <th scope="col">w	跌停價</th> *@
 				</tr>
 			</thead>
-			<tbody>
-				<tr v-if="stockInfo.msgArray">
-					<td>{{ stockInfo.msgArray[0].c }}</td>
+			<tbody class="table-group-divider" v-if="stockInfo.length > 0" v-cloak>
+				<tr v-for="(item, index) in stockInfo" v-bind:key="index">
+					<td>{{ item.msgArray[0].c }}</td>
 					@* <td>{{ stockInfo.msgArray[0].c }}</td> *@
 					<td>{{ stockInfo.msgArray[0].n }}</td>
 					@* <td>{{ stockInfo.msgArray[0].nf }}</td> *@
-					<td>{{ stockInfo.msgArray[0].d }}</td>
-					<td>{{ stockInfo.msgArray[0].t }}</td>
+					<td>{{ stockInfo.msgArray[0].d + " " + stockInfo.msgArray[0].t }}</td>
+					@* <td>{{ stockInfo.msgArray[0].t }}</td> *@
 					@* <td>{{ stockInfo.msgArray[0].tlong }}</td> *@
 					<td>{{ stockInfo.msgArray[0].z }}</td>
 					<td>{{ stockInfo.msgArray[0].tv }}</td>
@@ -90,6 +95,7 @@
 			},
 			mounted: function () {
 				let _this = this;
+				// _this.getStockApi();
 			},
 			computed: {
 
@@ -99,8 +105,12 @@
 					let _this = this;
 					_this.spinner = false;
 					await axios.get(`api/StockTwseApi/GetStockInfo/${this.userInput}`).then(response => {
-						_this.stockInfo = response.data;
+						_this.stockInfo.push(response.data);
 						_this.spinner = true;
+
+						// if (!_this.stockInfo.msgArray || _this.stockInfo.msgArray.length === 0) {
+						// 	alert("查無此股票代號!");
+						// };
 					});
 				},
 				cleanStockInfo: function () {
