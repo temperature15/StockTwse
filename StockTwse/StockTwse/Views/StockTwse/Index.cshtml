@@ -10,6 +10,9 @@
 <div class="container" id="app">
 	<div class="row">
 		<div class="col-lg-12">
+			<div class="" v-if="spinner" v-cloak>
+
+			</div>
 			@*bs spinner 動畫*@
 			<partial name="_Spinner"></partial>
 		</div>
@@ -21,7 +24,7 @@
 		let app = new Vue({
 			el: "#app",
 			data: {
-
+				spinner: false,
 			},
 			mounted: function () {
 
