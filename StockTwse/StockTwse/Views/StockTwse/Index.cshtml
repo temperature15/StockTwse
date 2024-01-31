@@ -10,12 +10,12 @@
 <div class="container" id="app">
 	<div class="row">
 		<div class="col-lg-12">
+			<div class="input-group mb-3 p-5">
+				<span class="input-group-text" id="basic-addon1">請輸入股票代號</span>
+				<input type="text" class="form-control" placeholder="2330" aria-label="Username"
+					   aria-describedby="basic-addon1" v-model="userInput">
+			</div>
 			<div class="" v-if="spinner" v-cloak>
-				<div class="input-group mb-3 p-5">
-					<span class="input-group-text" id="basic-addon1">請輸入股票代號</span>
-					<input type="text" class="form-control" placeholder="2330" aria-label="Username"
-						   aria-describedby="basic-addon1" v-model="userInput">
-				</div>
 			</div>
 			@*bs spinner 動畫*@
 			<partial name="_Spinner"></partial>
@@ -33,15 +33,17 @@
 				returnData: [],
 			},
 			mounted: function () {
-				this.getStockApi();
+				let _this = this;
+				_this.getStockApi();
 			},
 			computed: {
 
 			},
 			methods: {
-				getStockApi() {
-					axios.get("api/StockTwseApi/").then(response => {
-						returnData = response.data;
+				getStockApi: async function () {
+					let _this = this;
+					axios.get("api/StockTwseApi/GetStockInfo").then(response => {
+						_this.returnData = response.data;
 					});
 				},
 			},

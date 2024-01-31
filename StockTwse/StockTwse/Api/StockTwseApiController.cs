@@ -22,7 +22,7 @@ namespace StockTwse.Api {
 			// tse開頭為上市股票。
 			// otc開頭為上櫃股票。
 			// 如果是興櫃股票則無法取得。
-			string c = "";
+			string c = "2330";
 			string tse = "tse";
 			string otc = "otc";
 			string tseUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_{c}.tw";
@@ -32,7 +32,7 @@ namespace StockTwse.Api {
 			HttpClient client = _httpClientFactory.CreateClient();
 
 			// 發起請求
-			HttpResponseMessage response = await client.GetAsync(tseUrl);
+			HttpResponseMessage response = await client.GetAsync(otcUrl);
 
 			// 如果回傳的 http code 不是200, 拋出例外
 			//response.EnsureSuccessStatusCode();
