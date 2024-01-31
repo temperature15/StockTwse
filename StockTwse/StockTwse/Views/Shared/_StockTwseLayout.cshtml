@@ -1,0 +1,59 @@
+﻿@inject IHttpContextAccessor HttpContextAccessor;
+@inject IWebHostEnvironment Environment
+@{
+	// 取得當前 controller 和 index 名稱, 把 / 去掉, 用在 class="active"
+	// var temp = HttpContextAccessor.HttpContext.Request.Path.Value.Replace("/", "");
+	// 選擇庫存管理的手風琴選單也會啟用 class = active
+	// 但是長度少於7會掛掉...
+	// var temp1 = temp.Substring(0, 7);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>@ViewData["Title"] - StockTwse</title>
+	<link rel="icon" href="~/img/favicon.png" type="image/x-icon">
+
+	@* 開發模式使用不同的 vue 版本 *@
+	@if (Environment.IsDevelopment()) {
+		@* 使用 Vue 2 開發版 *@
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+	} else {
+		@* 使用 Vue 2 生產版 *@
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+	}
+
+	@* bootstrap *@
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+	@* google fonts *@
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+	@await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+	@RenderBody()
+
+	@* axios *@
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js" integrity="sha512-emSwuKiMyYedRwflbZB2ghzX8Cw8fmNVgZ6yQNNXXagFzFOaQmbvQ1vmDkddHjm5AITcBIZfC7k4ShQSjgPAmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+	@* sweetalert2 *@
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+	@* jquery *@
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+	@* momentjs *@
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+	@* bootstrap *@
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js" integrity="sha512-X/YkDZyjTf4wyc2Vy16YGCPHwAY8rZJY+POgokZjQB2mhIRFJCckEGc6YyX9eNsPfn0PzThEuNs+uaomE5CO6A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+	@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
