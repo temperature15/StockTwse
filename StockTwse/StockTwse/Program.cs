@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StockTwse.Data;
 
@@ -16,6 +16,9 @@ namespace StockTwse {
 			builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 				.AddEntityFrameworkStores<ApplicationDbContext>();
 			builder.Services.AddControllersWithViews();
+
+			// 註冊 IHttpClientFactory
+			builder.Services.AddHttpClient();
 
 			var app = builder.Build();
 
