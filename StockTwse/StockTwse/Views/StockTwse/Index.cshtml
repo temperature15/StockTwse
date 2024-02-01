@@ -14,16 +14,16 @@
 
 <div class="container" id="app">
 	<div class="row">
-		<div class="col-lg-12 pt-5">
+		<div class="col-md-12 pt-5">
 			<div class="input-group">
-				<span class="input-group-text" id="basic-addon1">請輸入股票代號(每5分鐘自動刷新一次)</span>
-				<input type="text" class="form-control" placeholder="2330 or 6547" aria-label="Username" aria-describedby="basic-addon1" v-model="userInput">
+				@* <span class="input-group-text" id="basic-addon1">請輸入股票代號(每5分鐘自動刷新一次)</span> *@
+				<input type="number" class="form-control" placeholder="2330 or 6547" aria-label="Username" aria-describedby="basic-addon1" v-model="userInput">
 			</div>
-			<span class="input-group-text text-danger" id="basic-addon1">刷新數量和次數不要太頻繁，不然會被BAN!</span>
+			<span class="input-group-text text-danger" id="basic-addon1">請輸入股票代號(每5分鐘自動刷新一次)，刷新數量和次數不要太頻繁，不然會被BAN!</span>
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-lg-12 pt-3">
+		<div class="col-md-12 pt-3">
 			<button type="button" class="btn btn-primary" v-on:click="getStockApi">確定資料</button>
 			<button type="button" class="btn btn-danger" v-on:click="cleanStockInfo">清除資料</button>
 			<button type="button" class="btn btn-success" v-on:click="updateStockInfo">手動刷新</button>
