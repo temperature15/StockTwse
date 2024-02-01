@@ -35,7 +35,7 @@
 					@* <th scope="col">上市或上櫃公司</th> *@
 					<th scope="col">n	公司簡稱</th>
 					@* <th scope="col">nf	公司全名</th> *@
-					<th scope="col">d + t	最近交易日期（YYYYMMDD）</th>
+					<th scope="col">d + t	最近交易日期</th>
 					@* <th scope="col">t	最近成交時刻（HH:MI:SS）</th> *@
 					@* <th scope="col">tlong	資料更新時間（單位：毫秒）</th> *@
 					<th scope="col">z	當前盤中成交價</th>
@@ -53,28 +53,29 @@
 					@* <th scope="col">w	跌停價</th> *@
 				</tr>
 			</thead>
-			<tbody class="table-group-divider" v-if="stockInfo.length > 0" v-cloak>
-				<tr v-for="(item, index) in stockInfo" v-bind:key="index">
+			<tbody class="table-group-divider" v-cloak>
+				@* 因為有給一筆初始值，這邊檢查 array 長度大於1才渲染 index > 0 *@
+				<tr v-for="(item, index) in stockInfo" v-bind:key="index" v-if="index > 0">
 					<td>{{ item.msgArray[0].c }}</td>
-					@* <td>{{ stockInfo.msgArray[0].c }}</td> *@
-					<td>{{ stockInfo.msgArray[0].n }}</td>
-					@* <td>{{ stockInfo.msgArray[0].nf }}</td> *@
-					<td>{{ stockInfo.msgArray[0].d + " " + stockInfo.msgArray[0].t }}</td>
-					@* <td>{{ stockInfo.msgArray[0].t }}</td> *@
-					@* <td>{{ stockInfo.msgArray[0].tlong }}</td> *@
-					<td>{{ stockInfo.msgArray[0].z }}</td>
-					<td>{{ stockInfo.msgArray[0].tv }}</td>
-					<td>{{ stockInfo.msgArray[0].v }}</td>
-					<td>{{ stockInfo.msgArray[0].o }}</td>
-					<td>{{ stockInfo.msgArray[0].h }}</td>
-					<td>{{ stockInfo.msgArray[0].l }}</td>
-					<td>{{ stockInfo.msgArray[0].y }}</td>
-					@* <td>{{ stockInfo.msgArray[0].b }}</td> *@
-					@* <td>{{ stockInfo.msgArray[0].g }}</td> *@
-					@* <td>{{ stockInfo.msgArray[0].a }}</td> *@
-					@* <td>{{ stockInfo.msgArray[0].f }}</td> *@
-					@* <td>{{ stockInfo.msgArray[0].u }}</td> *@
-					@* <td>{{ stockInfo.msgArray[0].w }}</td> *@
+					@* <td>{{ item.msgArray[0].c }}</td> *@
+					<td>{{ item.msgArray[0].n }}</td>
+					@* <td>{{ item.msgArray[0].nf }}</td> *@
+					<td>{{ item.msgArray[0].d + " " + item.msgArray[0].t }}</td>
+					@* <td>{{ item.msgArray[0].t }}</td> *@
+					@* <td>{{ item.msgArray[0].tlong }}</td> *@
+					<td>{{ item.msgArray[0].z }}</td>
+					<td>{{ item.msgArray[0].tv }}</td>
+					<td>{{ item.msgArray[0].v }}</td>
+					<td>{{ item.msgArray[0].o }}</td>
+					<td>{{ item.msgArray[0].h }}</td>
+					<td>{{ item.msgArray[0].l }}</td>
+					<td>{{ item.msgArray[0].y }}</td>
+					@* <td>{{ item.msgArray[0].b }}</td> *@
+					@* <td>{{ item.msgArray[0].g }}</td> *@
+					@* <td>{{ item.msgArray[0].a }}</td> *@
+					@* <td>{{ item.msgArray[0].f }}</td> *@
+					@* <td>{{ item.msgArray[0].u }}</td> *@
+					@* <td>{{ item.msgArray[0].w }}</td> *@
 				</tr>
 			</tbody>
 		</table>
@@ -91,11 +92,11 @@
 			data: {
 				spinner: true,
 				userInput: "",
-				stockInfo: [],
+				// 給一個初始值，不然 v-for 會錯誤
+				stockInfo: [{ "msgArray": [{}] }],
 			},
 			mounted: function () {
 				let _this = this;
-				// _this.getStockApi();
 			},
 			computed: {
 
@@ -103,19 +104,39 @@
 			methods: {
 				getStockApi: async function () {
 					let _this = this;
+
+					// 檢查是否有輸入股票代號
+					if (_this.userInput === "") {
+						alert("請輸入股票代號!");
+						return;
+					};
+
+					// 檢查股票代號是否已經存在於 stockInfo 中
+					if (_this.stockInfo.some(item => item.msgArray[0].c === _this.userInput)) {
+						alert("股票代號已存在!");
+						return;
+					}
+
 					_this.spinner = false;
+
+					// 打 api, 並且 push 到 array
 					await axios.get(`api/StockTwseApi/GetStockInfo/${this.userInput}`).then(response => {
 						_this.stockInfo.push(response.data);
 						_this.spinner = true;
 
-						// if (!_this.stockInfo.msgArray || _this.stockInfo.msgArray.length === 0) {
-						// 	alert("查無此股票代號!");
-						// };
+						// 檢查輸入的股票代號如果不正確就 alert 並且刪除最後一筆資料
+						if (_this.stockInfo[_this.stockInfo.length - 1].msgArray.length === 0) {
+							_this.stockInfo.pop();
+							alert("查無此股票代號!");
+						};
 					});
 				},
+				// 清除資料
 				cleanStockInfo: function () {
 					let _this = this;
-					_this.stockInfo = [];
+					_this.stockInfo = [{ "msgArray": [{}] }];
+					_this.userInput = "";
+					_this.dataLoaded = false;
 				},
 			},
 		});
