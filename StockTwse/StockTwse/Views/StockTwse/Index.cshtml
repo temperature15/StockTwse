@@ -16,7 +16,7 @@
 	<div class="row">
 		<div class="col-lg-12 pt-5">
 			<div class="input-group">
-				<span class="input-group-text" id="basic-addon1">請輸入股票代號</span>
+				<span class="input-group-text" id="basic-addon1">請輸入股票代號(每分鐘刷新一次)</span>
 				<input type="text" class="form-control" placeholder="2330 or 6547" aria-label="Username" aria-describedby="basic-addon1" v-model="userInput">
 			</div>
 		</div>
@@ -97,6 +97,10 @@
 			},
 			mounted: function () {
 				let _this = this;
+				// 每分鐘刷新一次股票資訊
+				setInterval(function () {
+					_this.updateStockInfo();
+				}, 60000);
 			},
 			computed: {
 
@@ -136,7 +140,36 @@
 					let _this = this;
 					_this.stockInfo = [{ "msgArray": [{}] }];
 					_this.userInput = "";
-					_this.dataLoaded = false;
+					_this.spinner = true;
+				},
+
+				// 刷新股票資訊
+				updateStockInfo: async function () {
+					let _this = this;
+
+					console.log("更新中");
+
+					// 遍歷 stockInfo 中的每一筆股票代號，發送 API 請求並更新資訊
+					for (let i = 1; i < _this.stockInfo.length; i++) {
+						let stockCode = _this.stockInfo[i].msgArray[0].c;
+						let stockName = _this.stockInfo[i].msgArray[0].n;
+
+						await axios.get(`api/StockTwseApi/GetStockInfo/${stockCode}`).then(response => {
+							// 更新 stockInfo 中的資訊
+							_this.$set(_this.stockInfo, i, response.data);
+							_this.updateCount++;
+
+							// 使用 Toastify 顯示更新提示
+							Toastify({
+								text: stockName + ' 資料已更新！',
+								duration: 3000, // 顯示時間，單位是毫秒
+								gravity: "bottom", // 提示框位置
+								position: "right",
+								backgroundColor: "green", // 提示框背景色
+								stopOnFocus: false, // 不在焦點時是否停止計時
+							}).showToast();
+						});
+					}
 				},
 			},
 		});
