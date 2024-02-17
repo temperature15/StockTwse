@@ -17,7 +17,7 @@
 		<div class="col-md-12 pt-5">
 			<div class="input-group">
 				@* <span class="input-group-text" id="basic-addon1">請輸入股票代號(每5分鐘自動刷新一次)</span> *@
-				<input type="number" class="form-control" placeholder="2330 or 6547" aria-label="Username" aria-describedby="basic-addon1" v-model="userInput">
+				<input type="number" class="form-control" placeholder="2330 or 6547 or 3231" aria-label="Username" aria-describedby="basic-addon1" v-model="userInput">
 			</div>
 			<span class="input-group-text text-danger" id="basic-addon1">請輸入股票代號(每5分鐘自動刷新一次)，刷新數量和次數不要太頻繁，不然會被BAN!</span>
 		</div>
@@ -33,26 +33,28 @@
 		<table class="table table-striped table-bordered" v-if="spinner">
 			<thead class="table-light">
 				<tr>
-					<th scope="col">c	股票代號</th>
+					<th scope="col">股票代號</th>
 					@* <th scope="col">上市或上櫃公司</th> *@
-					<th scope="col">n	公司簡稱</th>
+					<th scope="col">公司簡稱</th>
 					@* <th scope="col">nf	公司全名</th> *@
-					<th scope="col">d + t	最近交易日期</th>
+					<th scope="col">最近交易日期</th>
 					@* <th scope="col">t	最近成交時刻（HH:MI:SS）</th> *@
 					@* <th scope="col">tlong	資料更新時間（單位：毫秒）</th> *@
-					<th scope="col">z	當前盤中成交價</th>
-					<th scope="col">tv	當前盤中盤成交量</th>
-					<th scope="col">v	累積成交量</th>
-					<th scope="col">o	開盤價格</th>
-					<th scope="col">h	最高價格</th>
-					<th scope="col">l	最低價格</th>
-					<th scope="col">y	昨日收盤價格</th>
+					<th scope="col">當前盤中成交價</th>
+					<th scope="col">當前盤中盤成交量</th>
+					<th scope="col">累積成交量</th>
+					<th scope="col">開盤價格</th>
+					<th scope="col">最高價格</th>
+					<th scope="col">最低價格</th>
+					<th scope="col">昨日收盤價格</th>
 					@* <th scope="col">b	揭示買價(從高到低，以_分隔資料)</th> *@
 					@* <th scope="col">g	揭示買量(配合b，以_分隔資料</th> *@
 					@* <th scope="col">a	揭示賣價(從低到高，以_分隔資料)</th> *@
 					@* <th scope="col">f	揭示賣量(配合a，以_分隔資料)</th> *@
 					@* <th scope="col">u	漲停價</th> *@
 					@* <th scope="col">w	跌停價</th> *@
+					<th scope="col" class="green">漲跌</th>
+					<th scope="col">漲跌幅</th>
 				</tr>
 			</thead>
 			<tbody class="table-group-divider" v-cloak>
@@ -78,6 +80,12 @@
 					@* <td>{{ item.msgArray[0].f }}</td> *@
 					@* <td>{{ item.msgArray[0].u }}</td> *@
 					@* <td>{{ item.msgArray[0].w }}</td> *@
+					<td v-bind:class="{'text-danger': item.msgArray[0].z - item.msgArray[0].y > 0, 'text-success': item.msgArray[0].z - item.msgArray[0].y < 0}">
+						{{ (item.msgArray[0].z - item.msgArray[0].y).toFixed(2) }}
+					</td>
+					<td v-bind:class="{'text-danger': item.msgArray[0].z - item.msgArray[0].y > 0, 'text-success': item.msgArray[0].z - item.msgArray[0].y < 0}">
+						{{ ((item.msgArray[0].z - item.msgArray[0].y) / item.msgArray[0].y * 100).toFixed(2) }}%
+					</td>
 				</tr>
 			</tbody>
 		</table>
@@ -99,7 +107,7 @@
 			},
 			mounted: function () {
 				let _this = this;
-				// 每分鐘刷新一次股票資訊
+				// 每5分鐘刷新一次股票資訊
 				setInterval(function () {
 					_this.updateStockInfo();
 				}, 300000);
@@ -108,6 +116,7 @@
 
 			},
 			methods: {
+				// 取得股票資訊
 				getStockApi: async function () {
 					let _this = this;
 
@@ -174,6 +183,10 @@
 							}).showToast();
 						});
 					}
+				},
+				// 計算漲跌幅
+				calculatePriceChangePercentage: function () {
+
 				},
 			},
 		});
