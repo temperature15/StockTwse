@@ -9,6 +9,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  DOTNET_ROOT: StockTwse
+
 jobs:
   build:
     runs-on: windows-latest
