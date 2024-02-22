@@ -21,6 +21,7 @@ namespace StockTwse.Api {
 
 		[HttpGet("{userInput}")]
 		public async Task<ActionResult> GetStockInfo(string userInput) {
+			// 整股交易行情
 			// tse開頭為上市股票。
 			// otc開頭為上櫃股票。
 			// 如果是興櫃股票則無法取得。
@@ -28,6 +29,10 @@ namespace StockTwse.Api {
 			string tseUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_{userInput}.tw";
 			// 上櫃公司股票代號查詢
 			string otcUrl = $"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=otc_{userInput}.tw";
+
+			// 盤中零股行情
+			string tseUrlOdd = $"https://mis.twse.com.tw/stock/api/getOddInfo.jsp?ex_ch=tse_{userInput}.tw";
+			string otcUrlOdd = $"https://mis.twse.com.tw/stock/api/getOddInfo.jsp?ex_ch=otc_{userInput}.tw";
 
 			// 請求 data
 			HttpClient client = _httpClientFactory.CreateClient();
