@@ -1,0 +1,135 @@
+﻿@{
+    ViewData["Title"] = "Decompress";
+}
+
+@section Styles {
+    <style>
+        /* 隱藏未渲染的 Vue 內容，防止閃現 */
+        [v-cloak] {
+            display: none;
+        }
+        /* 格式化解壓文字的顯示樣式 */
+        .text-output {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        /* 錯誤訊息的樣式 */
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="container" id="app">
+    <!-- 輸入區域：用於輸入 16 進制字串 -->
+    <div class="row">
+        <div class="col-md-12 pt-5">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="輸入 16 進制字串 (例如: 1f8b0800...)" aria-label="HexInput" v-model="hexInput">
+            </div>
+            <span class="input-group-text text-danger" id="basic-addon1">請輸入有效的 16 進制字串，點擊「轉換」以解壓縮為文字</span>
+        </div>
+    </div>
+    <!-- 按鈕區域：觸發轉換或清除操作 -->
+    <div class="row">
+        <div class="col-md-12 pt-3">
+            <button type="button" class="btn btn-primary" v-on:click="decompressHex">轉換</button>
+            <button type="button" class="btn btn-danger" v-on:click="clearInput">清除</button>
+        </div>
+    </div>
+    <!-- 結果區域：顯示解壓結果或錯誤訊息，載入動畫在處理時顯示 -->
+    <div class="row pt-3" v-cloak>
+        <div class="col-md-12">
+            <div v-if="!spinner">
+                <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+                <div v-if="decompressedText" class="text-output">{{ decompressedText }}</div>
+            </div>
+            <div v-else class="text-center mt-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- 載入 pako 庫用於 GZIP 解壓縮 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        let app = new Vue({
+            el: "#app",
+            data: {
+                spinner: false, // 控制載入動畫顯示
+                hexInput: "", // 儲存用戶輸入的 16 進制字串
+                decompressedText: "", // 儲存解壓縮後的文字
+                errorMessage: "" // 儲存錯誤訊息
+            },
+            methods: {
+                // 將 16 進制字串轉為 byte 陣列
+                convertHexStringToByteArray(hex) {
+                    // 移除 "0x" 前綴（如果存在）
+                    if (hex.startsWith("0x")) {
+                        hex = hex.substring(2);
+                    }
+                    // 檢查字串長度是否為偶數
+                    if (hex.length % 2 !== 0) {
+                        throw new Error("16 進制字串長度必須為偶數");
+                    }
+                    // 將 16 進制字串轉為 Uint8Array
+                    let byteArray = new Uint8Array(hex.length / 2);
+                    for (let i = 0; i < hex.length; i += 2) {
+                        byteArray[i / 2] = parseInt(hex.substr(i, 2), 16);
+                    }
+                    return byteArray;
+                },
+                // 使用 pako 解壓縮 GZIP 資料
+                decompress(compressedData) {
+                    try {
+                        const decompressed = pako.ungzip(compressedData, { to: 'string' });
+                        return decompressed;
+                    } catch (e) {
+                        throw new Error("解壓縮失敗: " + e.message);
+                    }
+                },
+                // 處理 16 進制字串並解壓為文字
+                decompressHex: async function () {
+                    this.spinner = true; // 顯示載入動畫
+                    this.errorMessage = ""; // 清空錯誤訊息
+                    this.decompressedText = ""; // 清空解壓文字
+                    try {
+                        // 檢查是否有輸入
+                        if (!this.hexInput) {
+                            throw new Error("請輸入 16 進制字串!");
+                        }
+                        // 轉換 16 進制為 byte 陣列
+                        const byteArray = this.convertHexStringToByteArray(this.hexInput);
+                        // 解壓縮 GZIP 資料
+                        const decompressedContent = this.decompress(byteArray);
+                        // 儲存解壓結果
+                        this.decompressedText = decompressedContent;
+                    } catch (e) {
+                        // 儲存錯誤訊息
+                        this.errorMessage = e.message;
+                    } finally {
+                        this.spinner = false; // 隱藏載入動畫
+                    }
+                },
+                // 清除輸入和輸出內容
+                clearInput: function () {
+                    this.hexInput = ""; // 清空輸入
+                    this.decompressedText = ""; // 清空解壓文字
+                    this.errorMessage = ""; // 清空錯誤訊息
+                    this.spinner = false; // 確保不顯示載入動畫
+                }
+            }
+        });
+    </script>
+}

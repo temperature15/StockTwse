@@ -5,5 +5,9 @@ namespace StockTwse.Controllers {
 		public IActionResult Index() {
 			return View();
 		}
+
+		public IActionResult Decompress() {
+			return View();
+		}
 	}
 }
