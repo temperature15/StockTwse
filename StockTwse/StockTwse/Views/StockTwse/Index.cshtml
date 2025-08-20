@@ -165,7 +165,7 @@
 					for (let i = 1; i < _this.stockInfo.length; i++) {
 						let stockCode = _this.stockInfo[i].msgArray[0].c;
 						let stockName = _this.stockInfo[i].msgArray[0].n;
-						let updateTime = moment().format('HH:mm:ss');
+						let updateTime = dayjs().format('HH:mm:ss');
 
 						await axios.get(`api/StockTwseApi/GetStockInfo/${stockCode}`).then(response => {
 							// 更新 stockInfo 中的資訊

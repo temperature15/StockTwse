@@ -18,11 +18,28 @@
             max-height: 500px;
             overflow-y: auto;
             border: 1px solid #ddd;
+            position: relative; /* 讓內部的複製按鈕可以定位 */
         }
         /* 錯誤訊息的樣式 */
         .error-message {
             color: red;
             font-weight: bold;
+        }
+        /* 複製按鈕樣式 (浮動在右上角) */
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        /* Toast 容器固定在右上角 */
+        #toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 2000;
         }
     </style>
 }
@@ -49,7 +66,11 @@
         <div class="col-md-12">
             <div v-if="!spinner">
                 <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-                <div v-if="decompressedText" class="text-output">{{ decompressedText }}</div>
+                <!-- 顯示解壓縮後的文字（使用 highlight.js 美化，並附上浮動的複製按鈕） -->
+                <div v-if="decompressedText" class="text-output">
+                    <button type="button" class="btn btn-sm btn-success copy-btn" v-on:click="copyToClipboard">複製</button>
+                    <pre><code class="xml hljs" v-html="highlightedText"></code></pre>
+                </div>
             </div>
             <div v-else class="text-center mt-5">
                 <div class="spinner-border" role="status">
@@ -59,6 +80,9 @@
         </div>
     </div>
 </div>
+
+<!-- Toast 容器 -->
+<div id="toast-container"></div>
 
 @section Scripts {
     <!-- 載入 pako 庫用於 GZIP 解壓縮 -->
@@ -70,6 +94,7 @@
                 spinner: false, // 控制載入動畫顯示
                 hexInput: "", // 儲存用戶輸入的 16 進制字串
                 decompressedText: "", // 儲存解壓縮後的文字
+                highlightedText: "", // 儲存 highlight.js 處理過的文字
                 errorMessage: "" // 儲存錯誤訊息
             },
             methods: {
@@ -104,6 +129,7 @@
                     this.spinner = true; // 顯示載入動畫
                     this.errorMessage = ""; // 清空錯誤訊息
                     this.decompressedText = ""; // 清空解壓文字
+                    this.highlightedText = ""; // 清空高亮文字
                     try {
                         // 檢查是否有輸入
                         if (!this.hexInput) {
@@ -115,6 +141,8 @@
                         const decompressedContent = this.decompress(byteArray);
                         // 儲存解壓結果
                         this.decompressedText = decompressedContent;
+                        // 使用 highlight.js 美化 XML
+                        this.highlightedText = hljs.highlight(decompressedContent, { language: 'xml' }).value;
                     } catch (e) {
                         // 儲存錯誤訊息
                         this.errorMessage = e.message;
@@ -126,8 +154,38 @@
                 clearInput: function () {
                     this.hexInput = ""; // 清空輸入
                     this.decompressedText = ""; // 清空解壓文字
+                    this.highlightedText = ""; // 清空高亮文字
                     this.errorMessage = ""; // 清空錯誤訊息
                     this.spinner = false; // 確保不顯示載入動畫
+                },
+                // 複製解壓縮後的文字
+                copyToClipboard: function () {
+                    navigator.clipboard.writeText(this.decompressedText)
+                        .then(() => this.showToast("已複製到剪貼簿"))
+                        .catch(err => this.showToast("複製失敗: " + err, true));
+                },
+                // 顯示 Toast 訊息
+                showToast: function (message, isError = false) {
+                    const toastId = "toast-" + Date.now();
+                    const toastHtml = `
+                        <div id="${toastId}" class="toast align-items-center text-white ${isError ? 'bg-danger' : 'bg-success'} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                          <div class="d-flex">
+                            <div class="toast-body">
+                              ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                          </div>
+                        </div>`;
+                    const container = document.getElementById("toast-container");
+                    container.insertAdjacentHTML("beforeend", toastHtml);
+
+                    const toastElement = document.getElementById(toastId);
+                    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+                    toast.show();
+
+                    toastElement.addEventListener("hidden.bs.toast", () => {
+                        toastElement.remove();
+                    });
                 }
             }
         });
