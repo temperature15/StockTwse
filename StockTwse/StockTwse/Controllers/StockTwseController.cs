@@ -9,5 +9,9 @@ namespace StockTwse.Controllers {
 		public IActionResult Decompress() {
 			return View();
 		}
+
+		public IActionResult Vivian() {
+			return View();
+		}
 	}
 }
